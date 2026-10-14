@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Insect Selective Breeding Simulator | Web Dashboard</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col">
+
+    <!-- Top Navigation Bar -->
+    <header class="border-b border-slate-800 bg-slate-950/80 backdrop-blur sticky top-0 z-50 px-6 py-4 flex items-center justify-between">
+        <div class="flex items-center space-x-3">
+            <div class="bg-emerald-500/10 border border-emerald-500/30 p-2 rounded-xl text-emerald-400">
+                <i data-lucide="dna" class="w-6 h-6"></i>
+            </div>
+            <div>
+                <h1 class="text-lg font-bold text-white flex items-center gap-2">
+                    Insect Selective Breeding Simulator
+                    <span class="text-xs font-semibold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">30% Milestone</span>
+                </h1>
+                <p class="text-xs text-slate-400">Data-Driven Optimization of Larval Yield in Black Soldier Fly for Aquafeed</p>
+            </div>
+        </div>
+        <div class="flex items-center space-x-3">
+            <div id="api-status-badge" class="flex items-center space-x-2 px-3 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-medium">
+                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                <span>API: Connected (http://localhost:8000)</span>
+            </div>
+            <a href="http://localhost:8000/docs" target="_blank" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-medium transition flex items-center gap-1.5 border border-slate-700">
+                <i data-lucide="file-code" class="w-3.5 h-3.5"></i> Swagger Docs
+            </a>
+        </div>
+    </header>
+
+    <!-- Main Content Grid -->
+    <div class="flex-1 flex overflow-hidden">
+
+        <!-- Left Sidebar: Controls -->
+        <aside class="w-80 border-r border-slate-800 bg-slate-950/40 p-5 overflow-y-auto space-y-6">
+            
+            <div>
+                <h2 class="text-xs font-bold uppercase tracking-wider text-emerald-400 mb-3 flex items-center gap-1.5">
+                    <i data-lucide="sliders" class="w-4 h-4"></i> Breeding Parameters
+                </h2>
+                
+                <div class="space-y-4 text-xs">
+                    <div>
+                        <div class="flex justify-between text-slate-300 font-medium mb-1">
+                            <span>Sires (Males)</span>
+                            <span id="val-sires" class="text-emerald-400 font-bold">20</span>
+                        </div>
+                        <input id="input-sires" type="range" min="10" max="50" step="2" value="20" class="w-full accent-emerald-500 bg-slate-800 rounded-lg">
+                    </div>
+
+                    <div>
+                        <div class="flex justify-between text-slate-300 font-medium mb-1">
+                            <span>Dams per Sire</span>
+                            <span id="val-dams" class="text-emerald-400 font-bold">3</span>
+                        </div>
+                        <input id="input-dams" type="range" min="2" max="5" step="1" value="3" class="w-full accent-emerald-500 bg-slate-800 rounded-lg">
+                    </div>
+
+                    <div>
+                        <div class="flex justify-between text-slate-300 font-medium mb-1">
+                            <span>Larvae per Clutch</span>
+                            <span id="val-clutch" class="text-emerald-400 font-bold">20</span>
+                        </div>
+                        <input id="input-clutch" type="range" min="10" max="30" step="5" value="20" class="w-full accent-emerald-500 bg-slate-800 rounded-lg">
+                    </div>
+
+                    <div class="p-2.5 rounded-lg bg-slate-900 border border-slate-800 text-[11px] text-slate-400 space-y-1">
+                        <div class="flex justify-between"><span>Cohort Size:</span> <b id="stat-cohort" class="text-slate-200">1,200 larvae/gen</b></div>
+                        <div class="flex justify-between"><span>Active Sires/Dams:</span> <b id="stat-parents" class="text-slate-200">20 / 60</b></div>
+                        <div class="flex justify-between"><span>Effective Size (Ne):</span> <b id="stat-ne" class="text-emerald-400">60.0</b></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="border-t border-slate-800/80 pt-5">
+                <h2 class="text-xs font-bold uppercase tracking-wider text-emerald-400 mb-3 flex items-center gap-1.5">
+                    <i data-lucide="atom" class="w-4 h-4"></i> Quantitative Genetics
+                </h2>
+                
+                <div class="space-y-4 text-xs">
+                    <div>
+                        <div class="flex justify-between text-slate-300 font-medium mb-1">
+                            <span>Base Weight (mg)</span>
+                            <span id="val-weight" class="text-emerald-400 font-bold">200.0</span>
+                        </div>
+                        <input id="input-weight" type="number" min="100" max="400" step="10" value="200" class="w-full bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-1.5 text-slate-200 text-xs">
+                    </div>
+
+                    <div>
+                        <div class="flex justify-between text-slate-300 font-medium mb-1">
+                            <span>Heritability (h²)</span>
+                            <span id="val-h2" class="text-emerald-400 font-bold">0.30</span>
+                        </div>
+                        <input id="input-h2" type="range" min="0.10" max="0.60" step="0.05" value="0.30" class="w-full accent-emerald-500 bg-slate-800 rounded-lg">
+                    </div>
+
+                    <div>
+                        <div class="flex justify-between text-slate-300 font-medium mb-1">
+                            <span>Phenotypic Variance (σ_P²)</span>
+                            <span id="val-var" class="text-emerald-400 font-bold">30.0</span>
+                        </div>
+                        <input id="input-var" type="number" min="10" max="100" step="5" value="30" class="w-full bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-1.5 text-slate-200 text-xs">
+                    </div>
+                </div>
+            </div>
+
+            <div class="border-t border-slate-800/80 pt-5">
+                <h2 class="text-xs font-bold uppercase tracking-wider text-emerald-400 mb-3 flex items-center gap-1.5">
+                    <i data-lucide="target" class="w-4 h-4"></i> Selection Protocol
+                </h2>
+                
+                <div class="space-y-4 text-xs">
+                    <div>
+                        <div class="flex justify-between text-slate-300 font-medium mb-1">
+                            <span>Generations</span>
+                            <span id="val-gens" class="text-emerald-400 font-bold">15</span>
+                        </div>
+                        <input id="input-gens" type="range" min="5" max="30" step="1" value="15" class="w-full accent-emerald-500 bg-slate-800 rounded-lg">
+                    </div>
+
+                    <div>
+                        <div class="flex justify-between text-slate-300 font-medium mb-1">
+                            <span>Selection Proportion (Top %)</span>
+                            <span id="val-prop" class="text-emerald-400 font-bold">20%</span>
+                        </div>
+                        <input id="input-prop" type="range" min="0.10" max="0.40" step="0.05" value="0.20" class="w-full accent-emerald-500 bg-slate-800 rounded-lg">
+                    </div>
+
+                    <div>
+                        <label class="block text-slate-300 font-medium mb-1">Breeding Strategy</label>
+                        <select id="input-strategy" class="w-full bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-1.5 text-slate-200 text-xs">
+                            <option value="individual_ebv">Individual EBV (Default)</option>
+                            <option value="family_ebv">Family EBV</option>
+                        </select>
+                    </div>
+
+                    <button id="btn-run" class="w-full py-2.5 px-4 bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold rounded-xl transition duration-150 flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20">
+                        <i data-lucide="play" class="w-4 h-4 fill-current"></i> Run Simulation
+                    </button>
+                </div>
+            </div>
+
+        </aside>
+
+        <!-- Right Main View: KPIs and Charts -->
+        <main class="flex-1 p-6 overflow-y-auto space-y-6">
+
+            <!-- KPI Summary Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
+                <div class="bg-slate-950/60 border border-slate-800 rounded-2xl p-4">
+                    <span class="text-xs text-slate-400 font-medium flex items-center gap-1.5 mb-1"><i data-lucide="weight" class="w-3.5 h-3.5 text-emerald-400"></i> Final Weight</span>
+                    <div id="kpi-weight" class="text-2xl font-bold text-white">229.5 mg</div>
+                    <div id="kpi-gain-badge" class="text-xs text-emerald-400 mt-1 font-semibold">+29.8 mg (+14.9%)</div>
+                </div>
+
+                <div class="bg-slate-950/60 border border-slate-800 rounded-2xl p-4">
+                    <span class="text-xs text-slate-400 font-medium flex items-center gap-1.5 mb-1"><i data-lucide="trending-up" class="w-3.5 h-3.5 text-blue-400"></i> Genetic Gain (ΔG)</span>
+                    <div id="kpi-gain" class="text-2xl font-bold text-blue-400">+29.58 mg</div>
+                    <div class="text-xs text-slate-400 mt-1">Base: -0.53 mg</div>
+                </div>
+
+                <div class="bg-slate-950/60 border border-slate-800 rounded-2xl p-4">
+                    <span class="text-xs text-slate-400 font-medium flex items-center gap-1.5 mb-1"><i data-lucide="shield-alert" class="w-3.5 h-3.5 text-amber-400"></i> Inbreeding (F)</span>
+                    <div id="kpi-inbreeding" class="text-2xl font-bold text-amber-400">11.80%</div>
+                    <div class="text-xs text-emerald-400 mt-1">Safe (Threshold &lt; 15%)</div>
+                </div>
+
+                <div class="bg-slate-950/60 border border-slate-800 rounded-2xl p-4">
+                    <span class="text-xs text-slate-400 font-medium flex items-center gap-1.5 mb-1"><i data-lucide="users" class="w-3.5 h-3.5 text-purple-400"></i> Effective Size (Ne)</span>
+                    <div id="kpi-ne" class="text-2xl font-bold text-purple-400">60.0</div>
+                    <div class="text-xs text-slate-400 mt-1">ΔF = 0.833% / gen</div>
+                </div>
+
+                <div class="bg-slate-950/60 border border-slate-800 rounded-2xl p-4">
+                    <span class="text-xs text-slate-400 font-medium flex items-center gap-1.5 mb-1"><i data-lucide="check-circle" class="w-3.5 h-3.5 text-emerald-400"></i> ANOVA Heritability</span>
+                    <div id="kpi-h2" class="text-2xl font-bold text-white">0.290</div>
+                    <div class="text-xs text-slate-400 mt-1">Target h² = 0.30</div>
+                </div>
+            </div>
+
+            <!-- Charts Grid -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- Chart 1: Genetic Gain Curve -->
+                <div class="bg-slate-950/60 border border-slate-800 rounded-2xl p-5">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-sm font-bold text-slate-200 flex items-center gap-2">
+                            <i data-lucide="line-chart" class="w-4 h-4 text-emerald-400"></i> Additive Genetic Trend (Larval Weight)
+                        </h3>
+                        <span class="text-xs text-slate-400">Mean BV vs. Generation</span>
+                    </div>
+                    <div class="h-64">
+                        <canvas id="chart-gain"></canvas>
+                    </div>
+                </div>
+
+                <!-- Chart 2: Breeder's Equation Validation -->
+                <div class="bg-slate-950/60 border border-slate-800 rounded-2xl p-5">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-sm font-bold text-slate-200 flex items-center gap-2">
+                            <i data-lucide="bar-chart-3" class="w-4 h-4 text-blue-400"></i> Breeder's Equation (R = h² · S)
+                        </h3>
+                        <span class="text-xs text-slate-400">Predicted vs. Realized Response</span>
+                    </div>
+                    <div class="h-64">
+                        <canvas id="chart-breeders"></canvas>
+                    </div>
+                </div>
+
+                <!-- Chart 3: Inbreeding Curve -->
+                <div class="bg-slate-950/60 border border-slate-800 rounded-2xl p-5">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-sm font-bold text-slate-200 flex items-center gap-2">
+                            <i data-lucide="activity" class="w-4 h-4 text-rose-400"></i> Cumulative Inbreeding (F) Accumulation
+                        </h3>
+                        <span class="text-xs text-slate-400">Diversity Monitoring vs. FAO Threshold</span>
+                    </div>
+                    <div class="h-64">
+                        <canvas id="chart-inbreeding"></canvas>
+                    </div>
+                </div>
+
+                <!-- Chart 4: Heritability Stability -->
+                <div class="bg-slate-950/60 border border-slate-800 rounded-2xl p-5">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-sm font-bold text-slate-200 flex items-center gap-2">
+                            <i data-lucide="git-commit" class="w-4 h-4 text-purple-400"></i> Heritability Dynamics (ANOVA vs. True)
+                        </h3>
+                        <span class="text-xs text-slate-400">Bulmer Effect Stabilization</span>
+                    </div>
+                    <div class="h-64">
+                        <canvas id="chart-heritability"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Generation Log Table -->
+            <div class="bg-slate-950/60 border border-slate-800 rounded-2xl p-5">
+                <div class="flex items-center justify-between mb-4">
+                    <div>
+                        <h3 class="text-sm font-bold text-slate-200">Generational Metric Logs</h3>
+                        <p class="text-xs text-slate-400">Complete stochastic tracking data over simulated generations</p>
+                    </div>
+                    <button id="btn-export-csv" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-medium border border-slate-700 flex items-center gap-1.5 transition">
+                        <i data-lucide="download" class="w-3.5 h-3.5"></i> Export CSV
+                    </button>
+                </div>
+                <div class="overflow-x-auto max-h-64">
+                    <table class="w-full text-left text-xs">
+                        <thead class="sticky top-0 bg-slate-900 text-slate-400 uppercase text-[10px] tracking-wider border-b border-slate-800">
+                            <tr>
+                                <th class="p-2.5">Gen</th>
+                                <th class="p-2.5">Mean Weight</th>
+                                <th class="p-2.5">Mean BV</th>
+                                <th class="p-2.5">ANOVA h²</th>
+                                <th class="p-2.5">Diff (S)</th>
+                                <th class="p-2.5">Pred Gain (R)</th>
+                                <th class="p-2.5">Realized (ΔG)</th>
+                                <th class="p-2.5">Inbreeding (F)</th>
+                                <th class="p-2.5">Ne</th>
+                            </tr>
+                        </thead>
+                        <tbody id="table-body" class="divide-y divide-slate-800/60 text-slate-300">
+                            <!-- Populated dynamically via JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <script>
+        lucide.createIcons();
+
+        // Sliders live value updates
+        const updateSliderVal = (inputId, valId, suffix = '') => {
+            const input = document.getElementById(inputId);
+            const val = document.getElementById(valId);
+            input.addEventListener('input', () => {
+                val.textContent = input.value + suffix;
+                recalcCohortStats();
+            });
+        };
+        updateSliderVal('input-sires', 'val-sires');
+        updateSliderVal('input-dams', 'val-dams');
+        updateSliderVal('input-clutch', 'val-clutch');
+        updateSliderVal('input-h2', 'val-h2');
+        updateSliderVal('input-gens', 'val-gens');
+        updateSliderVal('input-prop', 'val-prop', '%');
+
+        function recalcCohortStats() {
+            const s = parseInt(document.getElementById('input-sires').value);
+            const d = parseInt(document.getElementById('input-dams').value);
+            const c = parseInt(document.getElementById('input-clutch').value);
+            const damsTotal = s * d;
+            const cohort = damsTotal * c;
+            const ne = (4.0 * s * damsTotal) / (s + damsTotal);
+            document.getElementById('stat-cohort').textContent = `${cohort.toLocaleString()} larvae/gen`;
+            document.getElementById('stat-parents').textContent = `${s} / ${damsTotal}`;
+            document.getElementById('stat-ne').textContent = ne.toFixed(1);
+        }
+
+        // Global Chart Instances
+        let chartGain, chartBreeders, chartInbreeding, chartHeritability;
+        let currentGenerationsData = [];
+
+        function initCharts() {
+            const commonOptions = {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { labels: { color: '#94a3b8', font: { size: 10 } } } },
+                scales: {
+                    x: { grid: { color: '#1e293b' }, ticks: { color: '#94a3b8', font: { size: 10 } } },
+                    y: { grid: { color: '#1e293b' }, ticks: { color: '#94a3b8', font: { size: 10 } } }
+                }
+            };
+
+            // Chart 1: Gain
+            chartGain = new Chart(document.getElementById('chart-gain'), {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [
+                        { label: 'Mean Breeding Value (mg)', data: [], borderColor: '#10b981', backgroundColor: 'rgba(16, 185, 129, 0.1)', fill: true, tension: 0.3 },
+                        { label: 'Harvest Weight (mg)', data: [], borderColor: '#3b82f6', borderDash: [4, 4], tension: 0.3 }
+                    ]
+                },
+                options: commonOptions
+            });
+
+            // Chart 2: Breeder's Eq
+            chartBreeders = new Chart(document.getElementById('chart-breeders'), {
+                type: 'bar',
+                data: {
+                    labels: [],
+                    datasets: [
+                        { label: 'Predicted Response (R = h²S)', data: [], backgroundColor: '#3b82f6' },
+                        { label: 'Realized Gain (ΔG)', data: [], backgroundColor: '#f59e0b' }
+                    ]
+                },
+                options: commonOptions
+            });
+
+            // Chart 3: Inbreeding
+            chartInbreeding = new Chart(document.getElementById('chart-inbreeding'), {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [
+                        { label: 'Cumulative Inbreeding F (%)', data: [], borderColor: '#f43f5e', tension: 0.3, fill: false },
+                        { label: 'FAO Warning Threshold (15%)', data: [], borderColor: '#f59e0b', borderDash: [6, 6], pointRadius: 0, fill: false }
+                    ]
+                },
+                options: commonOptions
+            });
+
+            // Chart 4: Heritability
+            chartHeritability = new Chart(document.getElementById('chart-heritability'), {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [
+                        { label: 'Estimated ANOVA h²', data: [], borderColor: '#8b5cf6', tension: 0.3 },
+                        { label: 'Empirical True h²', data: [], borderColor: '#64748b', borderDash: [4, 4] }
+                    ]
+                },
+                options: commonOptions
+            });
+        }
+
+        async function fetchSimulationData() {
+            const payload = {
+                n_sires: parseInt(document.getElementById('input-sires').value),
+                dams_per_sire: parseInt(document.getElementById('input-dams').value),
+                offspring_per_dam: parseInt(document.getElementById('input-clutch').value),
+                n_generations: parseInt(document.getElementById('input-gens').value),
+                mean_phenotype: parseFloat(document.getElementById('input-weight').value),
+                target_h2: parseFloat(document.getElementById('input-h2').value),
+                phenotypic_variance: parseFloat(document.getElementById('input-var').value),
+                selection_proportion: parseFloat(document.getElementById('input-prop').value),
+                strategy: document.getElementById('input-strategy').value,
+                random_seed: 42
+            };
+
+            const btn = document.getElementById('btn-run');
+            btn.innerHTML = `<span class="inline-block animate-spin mr-1">⏳</span> Simulating...`;
+            btn.disabled = true;
+
+            try {
+                const res = await fetch('http://localhost:8000/api/simulate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+                const data = await res.json();
+                renderResults(data);
+                document.getElementById('api-status-badge').innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-400"></span><span>API: Connected (http://localhost:8000)</span>`;
+            } catch (err) {
+                console.error("API error, falling back to simulated data:", err);
+                document.getElementById('api-status-badge').innerHTML = `<span class="w-2 h-2 rounded-full bg-amber-400"></span><span>API: Standalone Mode (Start run_api.bat for live model)</span>`;
+                generateFallbackData(payload);
+            } finally {
+                btn.innerHTML = `<i data-lucide="play" class="w-4 h-4 fill-current"></i> Run Simulation`;
+                btn.disabled = false;
+                lucide.createIcons();
+            }
+        }
+
+        function renderResults(data) {
+            const summary = data.summary;
+            const gens = data.generations;
+            currentGenerationsData = gens;
+
+            // Update KPIs
+            document.getElementById('kpi-weight').textContent = `${summary.final_weight_mg.toFixed(1)} mg`;
+            document.getElementById('kpi-gain-badge').textContent = `+${summary.total_genetic_gain_mg.toFixed(2)} mg (+${summary.gain_percentage.toFixed(1)}%)`;
+            document.getElementById('kpi-gain').textContent = `+${summary.total_genetic_gain_mg.toFixed(2)} mg`;
+            document.getElementById('kpi-inbreeding').textContent = `${(summary.final_inbreeding_F * 100).toFixed(2)}%`;
+            document.getElementById('kpi-ne').textContent = summary.effective_population_size_Ne.toFixed(1);
+            document.getElementById('kpi-h2').textContent = summary.final_h2_anova.toFixed(3);
+
+            // Update Charts
+            const labels = gens.map(g => `G${g.generation}`);
+            
+            // Chart 1: Gain
+            chartGain.data.labels = labels;
+            chartGain.data.datasets[0].data = gens.map(g => g.mean_bv);
+            chartGain.data.datasets[1].data = gens.map(g => g.mean_phenotype);
+            chartGain.update();
+
+            // Chart 2: Breeder's Eq (gen >= 1)
+            const evalGens = gens.filter(g => g.generation > 0);
+            chartBreeders.data.labels = evalGens.map(g => `G${g.generation}`);
+            chartBreeders.data.datasets[0].data = evalGens.map(g => g.predicted_gain);
+            chartBreeders.data.datasets[1].data = evalGens.map(g => g.realized_gain);
+            chartBreeders.update();
+
+            // Chart 3: Inbreeding
+            chartInbreeding.data.labels = labels;
+            chartInbreeding.data.datasets[0].data = gens.map(g => g.cumulative_F * 100);
+            chartInbreeding.data.datasets[1].data = gens.map(() => 15.0);
+            chartInbreeding.update();
+
+            // Chart 4: Heritability
+            chartHeritability.data.labels = labels;
+            chartHeritability.data.datasets[0].data = gens.map(g => g.h2_anova);
+            chartHeritability.data.datasets[1].data = gens.map(g => g.h2_true);
+            chartHeritability.update();
+
+            // Table rendering
+            const tbody = document.getElementById('table-body');
+            tbody.innerHTML = gens.map(g => `
+                <tr class="hover:bg-slate-900/60">
+                    <td class="p-2.5 font-bold text-slate-100">G${g.generation}</td>
+                    <td class="p-2.5 text-emerald-400 font-medium">${g.mean_phenotype.toFixed(2)} mg</td>
+                    <td class="p-2.5 font-medium">${g.mean_bv >= 0 ? '+' : ''}${g.mean_bv.toFixed(2)}</td>
+                    <td class="p-2.5 text-purple-400">${g.h2_anova.toFixed(3)}</td>
+                    <td class="p-2.5">${g.selection_differential_S.toFixed(2)}</td>
+                    <td class="p-2.5 text-blue-400">${g.predicted_gain.toFixed(2)}</td>
+                    <td class="p-2.5 text-amber-400">${g.realized_gain.toFixed(2)}</td>
+                    <td class="p-2.5 text-rose-400">${(g.cumulative_F * 100).toFixed(2)}%</td>
+                    <td class="p-2.5">${g.Ne.toFixed(1)}</td>
+                </tr>
+            `).join('');
+        }
+
+        function generateFallbackData(p) {
+            const gens = [];
+            const ne = (4 * p.n_sires * (p.n_sires * p.dams_per_sire)) / (p.n_sires + (p.n_sires * p.dams_per_sire));
+            const df = 1 / (2 * ne);
+            let cumF = 0;
+            let currentWeight = p.mean_phenotype;
+            let currentBV = 0;
+
+            for (let g = 0; g <= p.n_generations; g++) {
+                const s = 7.5;
+                const predGain = p.target_h2 * s;
+                const realGain = g === 0 ? 0 : predGain * (0.85 + Math.random() * 0.25);
+                if (g > 0) {
+                    currentBV += realGain;
+                    currentWeight += realGain;
+                    cumF = 1 - (1 - cumF) * (1 - df);
+                }
+                gens.push({
+                    generation: g,
+                    mean_phenotype: currentWeight,
+                    std_phenotype: Math.sqrt(p.phenotypic_variance),
+                    mean_bv: currentBV,
+                    std_bv: Math.sqrt(p.target_h2 * p.phenotypic_variance),
+                    h2_anova: p.target_h2 * (0.9 + Math.random() * 0.2),
+                    h2_true: p.target_h2,
+                    selection_differential_S: s,
+                    predicted_gain: predGain,
+                    realized_gain: realGain,
+                    cumulative_F: cumF,
+                    Ne: ne,
+                    strategy: p.strategy
+                });
+            }
+            renderResults({
+                summary: {
+                    initial_weight_mg: p.mean_phenotype,
+                    final_weight_mg: currentWeight,
+                    total_genetic_gain_mg: currentBV,
+                    gain_percentage: (currentBV / p.mean_phenotype) * 100,
+                    final_inbreeding_F: cumF,
+                    effective_population_size_Ne: ne,
+                    final_h2_anova: p.target_h2,
+                    target_h2: p.target_h2,
+                    inbreeding_safety_status: cumF < 0.15 ? "Safe (<15%)" : "Warning (>15%)"
+                },
+                generations: gens
+            });
+        }
+
+        // Export CSV button
+        document.getElementById('btn-export-csv').addEventListener('click', () => {
+            if (!currentGenerationsData.length) return;
+            const headers = Object.keys(currentGenerationsData[0]);
+            const rows = currentGenerationsData.map(row => headers.map(h => row[h]).join(','));
+            const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows].join('\n');
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement('a');
+            link.setAttribute('href', encodedUri);
+            link.setAttribute('download', 'insect_breeding_simulation_log.csv');
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        });
+
+        document.getElementById('btn-run').addEventListener('click', fetchSimulationData);
+
+        // Initialize on page load
+        window.addEventListener('DOMContentLoaded', () => {
+            initCharts();
+            fetchSimulationData();
+        });
+    </script>
+</body>
+</html>
