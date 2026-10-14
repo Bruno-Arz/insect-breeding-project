@@ -1,0 +1,10 @@
+[
+  "tests/test_heritability.py::test_heritability_recovery_multi_trial",
+  "tests/test_population.py::test_founder_population_structure",
+  "tests/test_population.py::test_trait_assignment",
+  "tests/test_selection.py::test_truncation_selection",
+  "tests/test_strategy_and_api.py::test_api_compare_strategies",
+  "tests/test_strategy_and_api.py::test_api_simulate_summary",
+  "tests/test_strategy_and_api.py::test_family_ebv_properties",
+  "tests/test_strategy_and_api.py::test_run_simulation_engine_api"
+]
